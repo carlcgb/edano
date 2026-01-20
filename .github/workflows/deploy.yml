@@ -57,21 +57,28 @@ jobs:
 
       - name: Build
         run: |
-          echo "📦 Starting build..."
+          echo "📦 Starting build with VITE_GOOGLE_MAPS_API_KEY..."
+          echo "🔑 API key length: ${#VITE_GOOGLE_MAPS_API_KEY} chars"
+          echo "🔑 API key preview: ${VITE_GOOGLE_MAPS_API_KEY:0:20}..."
+          if [ -z "$VITE_GOOGLE_MAPS_API_KEY" ]; then
+            echo "❌ CRITICAL ERROR: VITE_GOOGLE_MAPS_API_KEY is empty!"
+            echo "❌ Build will fail - secret must be set in GitHub Secrets"
+            exit 1
+          fi
           npm run build
           echo "✅ Build completed"
           echo "🔍 Verifying API key was injected in built files..."
           if find dist/assets -name "*.js" -type f -exec grep -q "AIzaSy" {} \; 2>/dev/null; then
-            echo "✅ API key found in built JavaScript files"
+            echo "✅ SUCCESS: API key found in built JavaScript files"
           else
-            echo "❌ ERROR: API key NOT found in built files!"
+            echo "❌ CRITICAL ERROR: API key NOT found in built files!"
             echo "Checking for undefined values..."
-            if find dist/assets -name "*.js" -type f -exec grep -q "undefined" {} \; 2>/dev/null; then
+            if find dist/assets -name "*.js" -type f -exec grep -q '"undefined"' {} \; 2>/dev/null || find dist/assets -name "*.js" -type f -exec grep -q "undefined" {} \; 2>/dev/null; then
               echo "❌ Found 'undefined' - API key was not injected during build"
               echo "This is a critical error - build will fail"
               exit 1
             else
-              echo "⚠️ WARNING: Could not verify API key injection"
+              echo "⚠️ WARNING: Could not verify API key injection - but continuing"
             fi
           fi
         env:
