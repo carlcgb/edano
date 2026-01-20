@@ -183,13 +183,17 @@ function MapComponent({ onCityClick }) {
             stylers: [{ visibility: 'off' }],
           },
         ],
-        disableDefaultUI: false,
-        zoomControl: true,
+        disableDefaultUI: true,
+        zoomControl: false,
         mapTypeControl: false,
-        scaleControl: true,
+        scaleControl: false,
         streetViewControl: false,
         rotateControl: false,
-        fullscreenControl: true,
+        fullscreenControl: false,
+        scrollwheel: false,
+        disableDoubleClickZoom: true,
+        draggable: false,
+        keyboardShortcuts: false,
       })
 
       // Create custom marker icon (mustard color)
@@ -279,7 +283,7 @@ function MapComponent({ onCityClick }) {
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
 
   return (
-    <div className="map-container" style={{ height: '80vh', width: '100%', position: 'relative', minHeight: '600px' }}>
+    <div className="map-container" style={{ height: '100vh', width: '100%', position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
       <div 
         ref={mapRef} 
         style={{ 
