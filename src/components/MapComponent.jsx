@@ -71,9 +71,14 @@ function MapComponent({ onCityClick }) {
     const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
 
     console.log('API Key loaded:', apiKey ? 'Yes' : 'No')
+    console.log('Environment:', import.meta.env.MODE)
+    console.log('API Key value:', apiKey ? `${apiKey.substring(0, 10)}...` : 'NOT SET')
 
     if (!apiKey) {
       console.error('VITE_GOOGLE_MAPS_API_KEY is not defined')
+      console.error('In production, ensure VITE_GOOGLE_MAPS_API_KEY is set in GitHub Secrets')
+      setError('Clé API Google Maps manquante. Vérifiez la configuration des secrets GitHub.')
+      setIsLoading(false)
       return
     }
 

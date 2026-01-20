@@ -28,6 +28,14 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Check Google Maps API key
+        run: |
+          if [ -z "${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}" ]; then
+            echo "❌ VITE_GOOGLE_MAPS_API_KEY is not set in GitHub Secrets"
+            exit 1
+          fi
+          echo "✅ VITE_GOOGLE_MAPS_API_KEY is configured from GitHub Secrets"
+
       - name: Build
         run: npm run build
         env:
