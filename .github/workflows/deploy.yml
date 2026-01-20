@@ -35,11 +35,14 @@ jobs:
             exit 1
           fi
           echo "✅ VITE_GOOGLE_MAPS_API_KEY is configured from GitHub Secrets"
+          API_KEY_PREVIEW="${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}"
+          echo "🔑 API Key preview: ${API_KEY_PREVIEW:0:15}..." 
 
       - name: Build
         run: npm run build
         env:
           VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
+        shell: bash
 
       - name: Check Cloudflare secrets
         run: |
