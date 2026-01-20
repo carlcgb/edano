@@ -43,6 +43,7 @@ jobs:
           echo "🔍 Verifying API key is available for build..."
           if [ -z "$VITE_GOOGLE_MAPS_API_KEY" ]; then
             echo "❌ ERROR: VITE_GOOGLE_MAPS_API_KEY is not available in build environment"
+            echo "❌ This means the secret is not set in GitHub Secrets"
             exit 1
           fi
           echo "✅ API key is available (length: ${#VITE_GOOGLE_MAPS_API_KEY} chars)"
@@ -50,6 +51,12 @@ jobs:
           echo "📦 Starting build with VITE_GOOGLE_MAPS_API_KEY set..."
           npm run build
           echo "✅ Build completed"
+          echo "🔍 Verifying API key was injected in built files..."
+          if grep -q "VITE_GOOGLE_MAPS_API_KEY" dist/index.html 2>/dev/null || grep -r "import.meta.env.VITE_GOOGLE_MAPS_API_KEY" dist/ 2>/dev/null | grep -v "undefined" | grep -q "AIzaSy"; then
+            echo "✅ API key found in built files"
+          else
+            echo "⚠️ WARNING: API key might not be properly injected in built files"
+          fi
         env:
           VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
         shell: bash
