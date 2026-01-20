@@ -38,36 +38,44 @@ jobs:
           API_KEY_PREVIEW="${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}"
           echo "🔑 API Key preview: ${API_KEY_PREVIEW:0:15}..." 
 
-      - name: Build
+      - name: Setup environment file
         run: |
-          echo "🔍 Verifying API key is available for build..."
+          echo "🔍 Verifying API key is available..."
           if [ -z "$VITE_GOOGLE_MAPS_API_KEY" ]; then
-            echo "❌ ERROR: VITE_GOOGLE_MAPS_API_KEY is not available in build environment"
+            echo "❌ ERROR: VITE_GOOGLE_MAPS_API_KEY is not available"
             echo "❌ This means the secret is not set in GitHub Secrets"
             exit 1
           fi
           echo "✅ API key is available (length: ${#VITE_GOOGLE_MAPS_API_KEY} chars)"
           echo "🔑 API key preview: ${VITE_GOOGLE_MAPS_API_KEY:0:20}..."
-          echo "📦 Starting build with VITE_GOOGLE_MAPS_API_KEY set..."
-          echo "🔍 Environment variable check:"
-          echo "VITE_GOOGLE_MAPS_API_KEY=${VITE_GOOGLE_MAPS_API_KEY:0:20}..."
+          echo "📝 Creating .env.production file..."
+          echo "VITE_GOOGLE_MAPS_API_KEY=$VITE_GOOGLE_MAPS_API_KEY" > .env.production
+          echo "✅ .env.production created"
+          cat .env.production | sed 's/VITE_GOOGLE_MAPS_API_KEY=\(.\{20\}\).*/VITE_GOOGLE_MAPS_API_KEY=\1.../' 
+        env:
+          VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
+
+      - name: Build
+        run: |
+          echo "📦 Starting build..."
           npm run build
           echo "✅ Build completed"
           echo "🔍 Verifying API key was injected in built files..."
-          echo "Searching for API key in dist/assets..."
-          if find dist/assets -name "*.js" -type f -exec grep -l "AIzaSy" {} \; 2>/dev/null | head -1; then
+          if find dist/assets -name "*.js" -type f -exec grep -q "AIzaSy" {} \; 2>/dev/null; then
             echo "✅ API key found in built JavaScript files"
           else
-            echo "⚠️ WARNING: API key not found in built files - checking for undefined..."
-            if find dist/assets -name "*.js" -type f -exec grep -l "undefined" {} \; 2>/dev/null | head -1; then
-              echo "❌ ERROR: Found 'undefined' in built files - API key was not injected!"
-              echo "This means Vite did not replace the environment variable during build"
+            echo "❌ ERROR: API key NOT found in built files!"
+            echo "Checking for undefined values..."
+            if find dist/assets -name "*.js" -type f -exec grep -q "undefined" {} \; 2>/dev/null; then
+              echo "❌ Found 'undefined' - API key was not injected during build"
+              echo "This is a critical error - build will fail"
               exit 1
+            else
+              echo "⚠️ WARNING: Could not verify API key injection"
             fi
           fi
         env:
           VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
-        shell: bash
 
       - name: Check Cloudflare secrets
         run: |
