@@ -291,44 +291,53 @@ function MapComponent({ onCityClick }) {
         })
 
         // Track currently open info window to close it when hovering another marker
+        let hoverTimeout = null
         let currentInfoWindow = null
 
         // Add hover listeners to marker
         marker.addListener('mouseover', () => {
+          // Clear any pending close timeout
+          if (hoverTimeout) {
+            clearTimeout(hoverTimeout)
+            hoverTimeout = null
+          }
+          
           // Close any previously open info window
           if (currentInfoWindow && currentInfoWindow !== infoWindow) {
             currentInfoWindow.close()
           }
+          
           infoWindow.open(mapInstanceRef.current, marker)
           currentInfoWindow = infoWindow
         })
 
-        // Close info window when mouse leaves marker
+        // Close info window when mouse leaves marker (with delay to allow moving to info window)
         marker.addListener('mouseout', () => {
-          // Small delay to allow moving to info window
-          setTimeout(() => {
+          hoverTimeout = setTimeout(() => {
             if (currentInfoWindow === infoWindow) {
               infoWindow.close()
               currentInfoWindow = null
             }
-          }, 200)
+          }, 300)
         })
 
         // Keep info window open when hovering over it
         infoWindow.addListener('domready', () => {
-          const infoWindowElement = infoWindow.getContent()
-          if (infoWindowElement) {
-            const div = typeof infoWindowElement === 'string' 
-              ? document.querySelector('.gm-style-iw-c') 
-              : infoWindowElement
-            if (div) {
-              div.addEventListener('mouseenter', () => {
-                if (currentInfoWindow === infoWindow) {
-                  clearTimeout()
+          // Use a small delay to ensure DOM is ready
+          setTimeout(() => {
+            const infoWindowDiv = document.querySelector('.gm-style-iw-c')
+            if (infoWindowDiv) {
+              infoWindowDiv.addEventListener('mouseenter', () => {
+                // Clear timeout when hovering over info window
+                if (hoverTimeout) {
+                  clearTimeout(hoverTimeout)
+                  hoverTimeout = null
                 }
               })
-              div.addEventListener('mouseleave', () => {
-                setTimeout(() => {
+              
+              infoWindowDiv.addEventListener('mouseleave', () => {
+                // Close after leaving info window
+                hoverTimeout = setTimeout(() => {
                   if (currentInfoWindow === infoWindow) {
                     infoWindow.close()
                     currentInfoWindow = null
@@ -336,7 +345,7 @@ function MapComponent({ onCityClick }) {
                 }, 200)
               })
             }
-          }
+          }, 100)
         })
 
         // Add click listener to marker to open modal
