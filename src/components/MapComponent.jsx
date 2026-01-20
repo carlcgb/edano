@@ -241,25 +241,48 @@ function MapComponent({ onCityClick }) {
           icon: customIcon,
         })
 
-        // Create info window
+        // Create info window with improved styling
         const infoWindow = new window.google.maps.InfoWindow({
           content: `
-            <div style="color: #1a1a1a; padding: 8px; min-width: 200px;">
-              <h3 style="margin: 0 0 8px 0; font-weight: bold; font-size: 18px;">${city.name}</h3>
-              <p style="margin: 0 0 12px 0; font-size: 14px; color: #666;">${city.description}</p>
+            <div style="
+              background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+              color: #ffffff;
+              padding: 16px;
+              min-width: 220px;
+              border-radius: 8px;
+              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+              border: 1px solid rgba(245, 158, 11, 0.3);
+            ">
+              <h3 style="
+                margin: 0 0 8px 0;
+                font-weight: 700;
+                font-size: 20px;
+                color: #f59e0b;
+                font-family: 'Playfair Display', serif;
+              ">${city.name}</h3>
+              <p style="
+                margin: 0 0 16px 0;
+                font-size: 14px;
+                color: #9ca5af;
+                line-height: 1.5;
+              ">${city.description}</p>
               <button 
                 onclick="window.handleCityClick('${city.id}')" 
                 style="
-                  background-color: #f59e0b; 
+                  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
                   color: white; 
                   border: none; 
-                  padding: 8px 16px; 
-                  border-radius: 4px; 
+                  padding: 10px 20px; 
+                  border-radius: 6px; 
                   cursor: pointer;
-                  font-weight: 500;
+                  font-weight: 600;
+                  font-size: 14px;
+                  width: 100%;
+                  transition: all 0.3s ease;
+                  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
                 "
-                onmouseover="this.style.backgroundColor='#d97706'"
-                onmouseout="this.style.backgroundColor='#f59e0b'"
+                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(245, 158, 11, 0.5)';"
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(245, 158, 11, 0.3)';"
               >
                 Voir l'épisode
               </button>
@@ -267,9 +290,57 @@ function MapComponent({ onCityClick }) {
           `,
         })
 
-        // Add click listener to marker
-        marker.addListener('click', () => {
+        // Track currently open info window to close it when hovering another marker
+        let currentInfoWindow = null
+
+        // Add hover listeners to marker
+        marker.addListener('mouseover', () => {
+          // Close any previously open info window
+          if (currentInfoWindow && currentInfoWindow !== infoWindow) {
+            currentInfoWindow.close()
+          }
           infoWindow.open(mapInstanceRef.current, marker)
+          currentInfoWindow = infoWindow
+        })
+
+        // Close info window when mouse leaves marker
+        marker.addListener('mouseout', () => {
+          // Small delay to allow moving to info window
+          setTimeout(() => {
+            if (currentInfoWindow === infoWindow) {
+              infoWindow.close()
+              currentInfoWindow = null
+            }
+          }, 200)
+        })
+
+        // Keep info window open when hovering over it
+        infoWindow.addListener('domready', () => {
+          const infoWindowElement = infoWindow.getContent()
+          if (infoWindowElement) {
+            const div = typeof infoWindowElement === 'string' 
+              ? document.querySelector('.gm-style-iw-c') 
+              : infoWindowElement
+            if (div) {
+              div.addEventListener('mouseenter', () => {
+                if (currentInfoWindow === infoWindow) {
+                  clearTimeout()
+                }
+              })
+              div.addEventListener('mouseleave', () => {
+                setTimeout(() => {
+                  if (currentInfoWindow === infoWindow) {
+                    infoWindow.close()
+                    currentInfoWindow = null
+                  }
+                }, 200)
+              })
+            }
+          }
+        })
+
+        // Add click listener to marker to open modal
+        marker.addListener('click', () => {
           onCityClick(city)
         })
 
