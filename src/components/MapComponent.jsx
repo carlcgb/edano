@@ -64,14 +64,8 @@ function MapComponent({ onCityClick }) {
   const mapRef = useRef(null)
   const mapInstanceRef = useRef(null)
   const markersRef = useRef([])
-  const onCityClickRef = useRef(onCityClick)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
-
-  // Keep the callback ref up to date
-  useEffect(() => {
-    onCityClickRef.current = onCityClick
-  }, [onCityClick])
 
   useEffect(() => {
     const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
@@ -183,17 +177,13 @@ function MapComponent({ onCityClick }) {
             stylers: [{ visibility: 'off' }],
           },
         ],
-        disableDefaultUI: true,
-        zoomControl: false,
+        disableDefaultUI: false,
+        zoomControl: true,
         mapTypeControl: false,
-        scaleControl: false,
+        scaleControl: true,
         streetViewControl: false,
         rotateControl: false,
-        fullscreenControl: false,
-        scrollwheel: false,
-        disableDoubleClickZoom: true,
-        draggable: false,
-        keyboardShortcuts: false,
+        fullscreenControl: true,
       })
 
       // Create custom marker icon (mustard color)
@@ -244,7 +234,7 @@ function MapComponent({ onCityClick }) {
         // Add click listener to marker
         marker.addListener('click', () => {
           infoWindow.open(mapInstanceRef.current, marker)
-          onCityClickRef.current(city)
+          onCityClick(city)
         })
 
         markersRef.current.push({ marker, infoWindow })
@@ -254,7 +244,7 @@ function MapComponent({ onCityClick }) {
         window.handleCityClick = (cityId) => {
           const city = quebecCities.find((c) => c.id.toString() === cityId.toString())
           if (city) {
-            onCityClickRef.current(city)
+            onCityClick(city)
           }
         }
         
@@ -267,7 +257,7 @@ function MapComponent({ onCityClick }) {
       }
     }
 
-    // Cleanup - only when component unmounts
+    // Cleanup - only run on unmount
     return () => {
       markersRef.current.forEach(({ marker, infoWindow }) => {
         marker.setMap(null)
@@ -279,22 +269,32 @@ function MapComponent({ onCityClick }) {
       }
     }
   }, []) // Empty dependency array - only run once on mount
+  
+  // Update handler when onCityClick changes (separate effect)
+  useEffect(() => {
+    if (window.handleCityClick) {
+      window.handleCityClick = (cityId) => {
+        const city = quebecCities.find((c) => c.id.toString() === cityId.toString())
+        if (city) {
+          onCityClick(city)
+        }
+      }
+    }
+  }, [onCityClick])
 
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
 
   return (
-    <div className="map-container" style={{ height: '100vh', width: '100%', position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1 }}>
+    <div className="map-container" style={{ height: '100vh', width: '100%', position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
       <div 
         ref={mapRef} 
         style={{ 
           height: '100%', 
-          width: '100%',
-          position: 'relative',
-          zIndex: 1
+          width: '100%'
         }} 
       />
       {!apiKey && (
-        <div className="absolute inset-0 flex items-center justify-center bg-dark-900 text-white z-50" style={{ zIndex: 100 }}>
+        <div className="absolute inset-0 flex items-center justify-center bg-dark-900 text-white z-50">
           <div className="text-center">
             <p className="text-xl mb-2">Clé API Google Maps manquante</p>
             <p className="text-sm text-dark-400">
@@ -307,14 +307,14 @@ function MapComponent({ onCityClick }) {
         </div>
       )}
       {isLoading && apiKey && (
-        <div className="absolute inset-0 flex items-center justify-center bg-dark-900/80 text-white z-40" style={{ zIndex: 100 }}>
+        <div className="absolute inset-0 flex items-center justify-center bg-dark-900/80 text-white z-40">
           <div className="text-center">
             <p className="text-xl mb-2">Chargement de la carte...</p>
           </div>
         </div>
       )}
       {error && (
-        <div className="absolute inset-0 flex items-center justify-center bg-dark-900 text-red-400 z-50" style={{ zIndex: 100 }}>
+        <div className="absolute inset-0 flex items-center justify-center bg-dark-900 text-red-400 z-50">
           <div className="text-center">
             <p className="text-xl mb-2">{error}</p>
             <p className="text-sm text-dark-400">Vérifiez la console pour plus de détails</p>
