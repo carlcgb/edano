@@ -267,8 +267,10 @@ function MapComponent({ onCityClick }) {
         const marker = new window.google.maps.Marker({
           position: city.position,
           map: mapInstanceRef.current,
-          title: city.name,
+          // Removed 'title' to prevent default Google Maps tooltip from showing
+          // We use custom InfoWindow instead
           icon: customIcon,
+          optimized: false, // Prevents tooltip from appearing
         })
 
         // Create info window with improved styling

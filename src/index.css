@@ -72,3 +72,17 @@
 .gm-style-iw-button:hover {
   background-color: rgba(245, 158, 11, 0.4) !important;
 }
+
+/* Hide default Google Maps tooltips (title attribute tooltips) */
+.gm-style [title] {
+  cursor: default !important;
+}
+
+/* Hide any default tooltip divs that Google Maps might create */
+div[role="tooltip"],
+.gm-style div[title]:not(.gm-style-iw-c):not(.gm-style-iw-d) {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
