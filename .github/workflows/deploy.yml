@@ -4,9 +4,8 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
+  # Removed pull_request trigger to avoid duplicate deployments
+  # Cloudflare Pages direct integration should be disabled to prevent duplicates
 
 jobs:
   build_and_deploy:

@@ -86,8 +86,9 @@ Le projet est configuré pour se déployer automatiquement sur Cloudflare Pages 
 
 2. **Cloudflare Pages** :
    - Créez un nouveau projet dans Cloudflare Pages
-   - Connectez votre repository GitHub
-   - Le workflow GitHub Actions se chargera du déploiement
+   - ⚠️ **IMPORTANT**: Ne connectez PAS votre repository GitHub directement dans Cloudflare Pages
+   - Le workflow GitHub Actions se chargera du déploiement automatiquement
+   - Si vous avez déjà connecté GitHub, désactivez l'intégration pour éviter les déploiements en double
 
 ### Workflow GitHub Actions
 
