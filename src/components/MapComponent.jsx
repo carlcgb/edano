@@ -139,31 +139,67 @@ function MapComponent({ onCityClick }) {
             elementType: 'labels',
             stylers: [{ visibility: 'off' }],
           },
-          // Hide all roads
+          // Hide all roads by default
           {
             featureType: 'road',
             stylers: [{ visibility: 'off' }],
           },
-          // Hide highway numbers and labels
+          // Show only controlled access highways (autoroutes)
+          {
+            featureType: 'road.highway.controlled_access',
+            elementType: 'geometry',
+            stylers: [
+              { color: '#2d2d2d' },
+              { visibility: 'on' },
+            ],
+          },
+          {
+            featureType: 'road.highway.controlled_access',
+            elementType: 'labels.text.fill',
+            stylers: [
+              { color: '#9ca5af' },
+              { visibility: 'on' },
+            ],
+          },
+          {
+            featureType: 'road.highway.controlled_access',
+            elementType: 'labels.text.stroke',
+            stylers: [
+              { color: '#1a1a1a' },
+              { visibility: 'on' },
+            ],
+          },
+          // Hide other highway types
           {
             featureType: 'road.highway',
             stylers: [{ visibility: 'off' }],
           },
+          // Show major city labels only
           {
-            featureType: 'road.highway.controlled_access',
-            stylers: [{ visibility: 'off' }],
-          },
-          // Hide administrative boundaries and labels
-          {
-            featureType: 'administrative',
-            stylers: [{ visibility: 'off' }],
+            featureType: 'administrative.locality',
+            elementType: 'labels.text.fill',
+            stylers: [
+              { color: '#ffffff' },
+              { visibility: 'on' },
+            ],
           },
           {
             featureType: 'administrative.locality',
-            stylers: [{ visibility: 'off' }],
+            elementType: 'labels.text.stroke',
+            stylers: [
+              { color: '#1a1a1a' },
+              { visibility: 'on' },
+            ],
           },
+          // Hide neighborhood labels (smaller cities)
           {
             featureType: 'administrative.neighborhood',
+            stylers: [{ visibility: 'off' }],
+          },
+          // Hide administrative boundaries
+          {
+            featureType: 'administrative',
+            elementType: 'geometry',
             stylers: [{ visibility: 'off' }],
           },
           // Hide points of interest
