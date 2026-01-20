@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 // Quebec cities with their coordinates and YouTube episode links
 const quebecCities = [
@@ -64,9 +64,13 @@ function MapComponent({ onCityClick }) {
   const mapRef = useRef(null)
   const mapInstanceRef = useRef(null)
   const markersRef = useRef([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
+
+    console.log('API Key loaded:', apiKey ? 'Yes' : 'No')
 
     if (!apiKey) {
       console.error('VITE_GOOGLE_MAPS_API_KEY is not defined')
@@ -79,17 +83,38 @@ function MapComponent({ onCityClick }) {
       script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`
       script.async = true
       script.defer = true
-      script.onload = initializeMap
+      script.onload = () => {
+        console.log('Google Maps script loaded')
+        setIsLoading(false)
+        initializeMap()
+      }
+      script.onerror = (error) => {
+        console.error('Error loading Google Maps script:', error)
+        setError('Erreur lors du chargement de Google Maps')
+        setIsLoading(false)
+      }
       document.head.appendChild(script)
     } else {
+      console.log('Google Maps already loaded')
       initializeMap()
     }
 
     function initializeMap() {
-      if (!mapRef.current || mapInstanceRef.current) return
+      if (!mapRef.current) {
+        console.error('Map ref is not available')
+        return
+      }
+      
+      if (mapInstanceRef.current) {
+        console.log('Map already initialized')
+        return
+      }
 
-      // Initialize map with dark theme
-      mapInstanceRef.current = new window.google.maps.Map(mapRef.current, {
+      console.log('Initializing Google Map...')
+
+      try {
+        // Initialize map with dark theme
+        mapInstanceRef.current = new window.google.maps.Map(mapRef.current, {
         center: { lat: 46.8139, lng: -71.2080 }, // Center of Quebec
         zoom: 7,
         styles: [
@@ -189,12 +214,20 @@ function MapComponent({ onCityClick }) {
         markersRef.current.push({ marker, infoWindow })
       })
 
-      // Store handler globally for info window buttons
-      window.handleCityClick = (cityId) => {
-        const city = quebecCities.find((c) => c.id.toString() === cityId.toString())
-        if (city) {
-          onCityClick(city)
+        // Store handler globally for info window buttons
+        window.handleCityClick = (cityId) => {
+          const city = quebecCities.find((c) => c.id.toString() === cityId.toString())
+          if (city) {
+            onCityClick(city)
+          }
         }
+        
+        console.log('Map initialized successfully')
+        setIsLoading(false)
+      } catch (err) {
+        console.error('Error initializing map:', err)
+        setError('Erreur lors de l\'initialisation de la carte')
+        setIsLoading(false)
       }
     }
 
@@ -211,16 +244,42 @@ function MapComponent({ onCityClick }) {
     }
   }, [onCityClick])
 
+  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
+
   return (
-    <div className="map-container">
-      <div ref={mapRef} style={{ height: '100vh', width: '100%' }} />
-      {!import.meta.env.VITE_GOOGLE_MAPS_API_KEY && (
+    <div className="map-container" style={{ height: '100vh', width: '100%', position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
+      <div 
+        ref={mapRef} 
+        style={{ 
+          height: '100%', 
+          width: '100%'
+        }} 
+      />
+      {!apiKey && (
         <div className="absolute inset-0 flex items-center justify-center bg-dark-900 text-white z-50">
           <div className="text-center">
             <p className="text-xl mb-2">Clé API Google Maps manquante</p>
             <p className="text-sm text-dark-400">
               Veuillez configurer VITE_GOOGLE_MAPS_API_KEY dans votre fichier .env
             </p>
+            <p className="text-xs text-dark-500 mt-2">
+              API Key: {apiKey ? 'Définie' : 'Non définie'}
+            </p>
+          </div>
+        </div>
+      )}
+      {isLoading && apiKey && (
+        <div className="absolute inset-0 flex items-center justify-center bg-dark-900/80 text-white z-40">
+          <div className="text-center">
+            <p className="text-xl mb-2">Chargement de la carte...</p>
+          </div>
+        </div>
+      )}
+      {error && (
+        <div className="absolute inset-0 flex items-center justify-center bg-dark-900 text-red-400 z-50">
+          <div className="text-center">
+            <p className="text-xl mb-2">{error}</p>
+            <p className="text-sm text-dark-400">Vérifiez la console pour plus de détails</p>
           </div>
         </div>
       )}

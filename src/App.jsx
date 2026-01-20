@@ -18,7 +18,7 @@ function App() {
   }
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative" style={{ height: '100vh', overflow: 'hidden' }}>
       <Header />
       <MapComponent onCityClick={handleCityClick} />
       {isModalOpen && selectedEpisode && (

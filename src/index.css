@@ -3,8 +3,18 @@
 @tailwind utilities;
 
 @layer base {
-  body {
+  html, body {
     @apply bg-dark-900 text-white font-sans;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+  }
+  
+  #root {
+    height: 100vh;
+    width: 100%;
+    position: relative;
   }
   
   * {
