@@ -238,6 +238,29 @@ function MapComponent({ onCityClick }) {
       // Shared state for info windows - ensures only one is open at a time
       let sharedHoverTimeout = null
       let sharedCurrentInfoWindow = null
+      const allInfoWindows = [] // Track all info windows
+
+      // Function to close ALL info windows (both tracked and in DOM)
+      const closeAllInfoWindows = () => {
+        // Close all tracked info windows
+        allInfoWindows.forEach(iw => {
+          if (iw && iw.getMap()) {
+            iw.close()
+          }
+        })
+        
+        // Also force close any info windows that might be in the DOM
+        const openWindows = document.querySelectorAll('.gm-style-iw-c')
+        openWindows.forEach(div => {
+          const parent = div.closest('.gm-style-iw')
+          if (parent) {
+            parent.style.display = 'none'
+            parent.remove()
+          }
+        })
+        
+        sharedCurrentInfoWindow = null
+      }
 
       // Add markers for each city
       quebecCities.forEach((city) => {
@@ -297,6 +320,9 @@ function MapComponent({ onCityClick }) {
           `,
         })
 
+        // Track this info window
+        allInfoWindows.push(infoWindow)
+
         // Add hover listeners to marker
         marker.addListener('mouseover', () => {
           // Clear any pending close timeout
@@ -305,17 +331,17 @@ function MapComponent({ onCityClick }) {
             sharedHoverTimeout = null
           }
           
-          // Close any previously open info window (from any marker)
-          if (sharedCurrentInfoWindow && sharedCurrentInfoWindow !== infoWindow) {
-            sharedCurrentInfoWindow.close()
-            sharedCurrentInfoWindow = null
-          }
+          // ALWAYS close all info windows first to prevent duplicates
+          closeAllInfoWindows()
           
-          // Only open if not already open
-          if (sharedCurrentInfoWindow !== infoWindow) {
-            infoWindow.open(mapInstanceRef.current, marker)
-            sharedCurrentInfoWindow = infoWindow
-          }
+          // Small delay to ensure previous windows are closed before opening new one
+          setTimeout(() => {
+            // Now open the new one (only one should be open)
+            if (sharedCurrentInfoWindow !== infoWindow) {
+              infoWindow.open(mapInstanceRef.current, marker)
+              sharedCurrentInfoWindow = infoWindow
+            }
+          }, 10)
         })
 
         // Close info window when mouse leaves marker (with delay to allow moving to info window)
@@ -339,27 +365,31 @@ function MapComponent({ onCityClick }) {
             })
             
             if (infoWindowDiv) {
-              // Remove any existing listeners to prevent duplicates
-              const newDiv = infoWindowDiv.cloneNode(true)
-              infoWindowDiv.parentNode.replaceChild(newDiv, infoWindowDiv)
+              // Clear any existing timeouts
+              if (sharedHoverTimeout) {
+                clearTimeout(sharedHoverTimeout)
+                sharedHoverTimeout = null
+              }
               
-              newDiv.addEventListener('mouseenter', () => {
-                // Clear timeout when hovering over info window
+              // Use event delegation to avoid duplicate listeners
+              const handleMouseEnter = () => {
                 if (sharedHoverTimeout) {
                   clearTimeout(sharedHoverTimeout)
                   sharedHoverTimeout = null
                 }
-              })
+              }
               
-              newDiv.addEventListener('mouseleave', () => {
-                // Close after leaving info window
+              const handleMouseLeave = () => {
                 sharedHoverTimeout = setTimeout(() => {
                   if (sharedCurrentInfoWindow === infoWindow) {
                     infoWindow.close()
                     sharedCurrentInfoWindow = null
                   }
                 }, 200)
-              })
+              }
+              
+              infoWindowDiv.addEventListener('mouseenter', handleMouseEnter, { once: false })
+              infoWindowDiv.addEventListener('mouseleave', handleMouseLeave, { once: false })
             }
           }, 100)
         })
