@@ -240,18 +240,6 @@ function MapComponent({ onCityClick }) {
       let sharedCurrentInfoWindow = null
       const allInfoWindows = [] // Track all info windows
 
-      // Function to close ALL info windows (both tracked and in DOM)
-      const closeAllInfoWindows = (except = null) => {
-        // Close all tracked info windows except the one we're about to open
-        allInfoWindows.forEach(iw => {
-          if (iw && iw !== except && iw.getMap()) {
-            iw.close()
-          }
-        })
-        
-        sharedCurrentInfoWindow = null
-      }
-
       // Add markers for each city
       quebecCities.forEach((city) => {
         const marker = new window.google.maps.Marker({
@@ -317,6 +305,7 @@ function MapComponent({ onCityClick }) {
 
         // Add hover listeners to marker
         marker.addListener('mouseover', () => {
+          console.log('Marker hovered:', city.name)
           // Clear any pending close timeout
           if (sharedHoverTimeout) {
             clearTimeout(sharedHoverTimeout)
@@ -329,8 +318,13 @@ function MapComponent({ onCityClick }) {
           }
           
           // Open this info window immediately
-          infoWindow.open(mapInstanceRef.current, marker)
-          sharedCurrentInfoWindow = infoWindow
+          try {
+            infoWindow.open(mapInstanceRef.current, marker)
+            sharedCurrentInfoWindow = infoWindow
+            console.log('Info window opened for:', city.name)
+          } catch (error) {
+            console.error('Error opening info window:', error)
+          }
         })
 
         // Close info window when mouse leaves marker (with delay to allow moving to info window)
