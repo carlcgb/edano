@@ -283,16 +283,18 @@ function MapComponent({ onCityClick }) {
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
 
   return (
-    <div className="map-container" style={{ height: '100vh', width: '100%', position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
+    <div className="map-container" style={{ height: '100vh', width: '100%', position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1 }}>
       <div 
         ref={mapRef} 
         style={{ 
           height: '100%', 
-          width: '100%'
+          width: '100%',
+          position: 'relative',
+          zIndex: 1
         }} 
       />
       {!apiKey && (
-        <div className="absolute inset-0 flex items-center justify-center bg-dark-900 text-white z-50">
+        <div className="absolute inset-0 flex items-center justify-center bg-dark-900 text-white z-50" style={{ zIndex: 100 }}>
           <div className="text-center">
             <p className="text-xl mb-2">Clé API Google Maps manquante</p>
             <p className="text-sm text-dark-400">
@@ -305,14 +307,14 @@ function MapComponent({ onCityClick }) {
         </div>
       )}
       {isLoading && apiKey && (
-        <div className="absolute inset-0 flex items-center justify-center bg-dark-900/80 text-white z-40">
+        <div className="absolute inset-0 flex items-center justify-center bg-dark-900/80 text-white z-40" style={{ zIndex: 100 }}>
           <div className="text-center">
             <p className="text-xl mb-2">Chargement de la carte...</p>
           </div>
         </div>
       )}
       {error && (
-        <div className="absolute inset-0 flex items-center justify-center bg-dark-900 text-red-400 z-50">
+        <div className="absolute inset-0 flex items-center justify-center bg-dark-900 text-red-400 z-50" style={{ zIndex: 100 }}>
           <div className="text-center">
             <p className="text-xl mb-2">{error}</p>
             <p className="text-sm text-dark-400">Vérifiez la console pour plus de détails</p>

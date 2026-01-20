@@ -18,13 +18,9 @@ function App() {
   }
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative" style={{ height: '100vh', overflow: 'hidden' }}>
       <Header />
-      <div className="container mx-auto px-4 py-8 md:py-16">
-        <div className="map-frame border-4 border-dark-800 bg-dark-800 rounded-lg overflow-hidden shadow-2xl">
-          <MapComponent onCityClick={handleCityClick} />
-        </div>
-      </div>
+      <MapComponent onCityClick={handleCityClick} />
       {isModalOpen && selectedEpisode && (
         <EpisodeModal episode={selectedEpisode} onClose={closeModal} />
       )}

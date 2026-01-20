@@ -7,13 +7,12 @@
     @apply bg-dark-900 text-white font-sans;
     margin: 0;
     padding: 0;
-    min-height: 100vh;
-    overflow-y: auto;
-    overflow-x: hidden;
+    height: 100%;
+    overflow: hidden;
   }
   
   #root {
-    min-height: 100vh;
+    height: 100vh;
     width: 100%;
     position: relative;
   }
@@ -43,12 +42,7 @@
 
 /* Google Maps custom styles */
 .map-container {
-  @apply relative w-full;
-}
-
-.map-frame {
-  @apply relative;
-  box-shadow: 0 0 0 4px rgba(26, 26, 26, 1), 0 20px 60px rgba(0, 0, 0, 0.5);
+  @apply relative w-full h-screen;
 }
 
 /* Google Maps InfoWindow styling */
