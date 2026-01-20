@@ -436,12 +436,11 @@ function MapComponent({ onCityClick }) {
   
   // Update handler when onCityClick changes (separate effect)
   useEffect(() => {
-    if (window.handleCityClick) {
-      window.handleCityClick = (cityId) => {
-        const city = quebecCities.find((c) => c.id.toString() === cityId.toString())
-        if (city) {
-          onCityClick(city)
-        }
+    // Always define/update the handler, don't check if it exists
+    window.handleCityClick = (cityId) => {
+      const city = quebecCities.find((c) => c.id.toString() === cityId.toString())
+      if (city) {
+        onCityClick(city)
       }
     }
   }, [onCityClick])

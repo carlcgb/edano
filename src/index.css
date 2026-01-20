@@ -74,15 +74,25 @@
 }
 
 /* Hide default Google Maps tooltips (title attribute tooltips) */
-.gm-style [title] {
+/* Only target tooltips, not info windows */
+.gm-style [title]:not(.gm-style-iw-c *):not(.gm-style-iw-d *) {
   cursor: default !important;
 }
 
 /* Hide any default tooltip divs that Google Maps might create */
-div[role="tooltip"],
-.gm-style div[title]:not(.gm-style-iw-c):not(.gm-style-iw-d) {
+/* Be very specific to avoid affecting info windows */
+div[role="tooltip"]:not(.gm-style-iw):not(.gm-style-iw-c):not(.gm-style-iw-d),
+.gm-style div[title]:not(.gm-style-iw-c):not(.gm-style-iw-d):not(.gm-style-iw-t):not(.gm-style-iw-b) {
   display: none !important;
   visibility: hidden !important;
   opacity: 0 !important;
   pointer-events: none !important;
+}
+
+/* Ensure info windows and their content are clickable */
+.gm-style-iw-c,
+.gm-style-iw-d,
+.gm-style-iw-c *,
+.gm-style-iw-d * {
+  pointer-events: auto !important;
 }
