@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-dark-900 text-white font-sans;
+  }
+  
+  * {
+    @apply scroll-smooth;
+  }
+}
+
+@layer components {
+  .map-container {
+    @apply w-full h-screen relative;
+  }
+  
+  .city-marker {
+    @apply cursor-pointer transition-all duration-300 hover:scale-110;
+  }
+  
+  .overlay-content {
+    @apply absolute inset-0 pointer-events-none z-10;
+  }
+  
+  .content-wrapper {
+    @apply pointer-events-auto;
+  }
+}
+
+/* Leaflet map custom styles */
+.leaflet-container {
+  @apply bg-dark-800;
+  font-family: 'Inter', sans-serif;
+}
+
+.leaflet-popup-content-wrapper {
+  @apply bg-dark-800 text-white rounded-lg;
+}
+
+.leaflet-popup-tip {
+  @apply bg-dark-800;
+}
