@@ -49,13 +49,21 @@ jobs:
           echo "✅ API key is available (length: ${#VITE_GOOGLE_MAPS_API_KEY} chars)"
           echo "🔑 API key preview: ${VITE_GOOGLE_MAPS_API_KEY:0:20}..."
           echo "📦 Starting build with VITE_GOOGLE_MAPS_API_KEY set..."
+          echo "🔍 Environment variable check:"
+          echo "VITE_GOOGLE_MAPS_API_KEY=${VITE_GOOGLE_MAPS_API_KEY:0:20}..."
           npm run build
           echo "✅ Build completed"
           echo "🔍 Verifying API key was injected in built files..."
-          if grep -q "VITE_GOOGLE_MAPS_API_KEY" dist/index.html 2>/dev/null || grep -r "import.meta.env.VITE_GOOGLE_MAPS_API_KEY" dist/ 2>/dev/null | grep -v "undefined" | grep -q "AIzaSy"; then
-            echo "✅ API key found in built files"
+          echo "Searching for API key in dist/assets..."
+          if find dist/assets -name "*.js" -type f -exec grep -l "AIzaSy" {} \; 2>/dev/null | head -1; then
+            echo "✅ API key found in built JavaScript files"
           else
-            echo "⚠️ WARNING: API key might not be properly injected in built files"
+            echo "⚠️ WARNING: API key not found in built files - checking for undefined..."
+            if find dist/assets -name "*.js" -type f -exec grep -l "undefined" {} \; 2>/dev/null | head -1; then
+              echo "❌ ERROR: Found 'undefined' in built files - API key was not injected!"
+              echo "This means Vite did not replace the environment variable during build"
+              exit 1
+            fi
           fi
         env:
           VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
