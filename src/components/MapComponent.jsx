@@ -113,42 +113,63 @@ function MapComponent({ onCityClick }) {
       console.log('Initializing Google Map...')
 
       try {
-        // Initialize map with dark theme
+        // Initialize map with minimal dark theme - only show podcast cities
         mapInstanceRef.current = new window.google.maps.Map(mapRef.current, {
         center: { lat: 46.8139, lng: -71.2080 }, // Center of Quebec
         zoom: 7,
         styles: [
+          // Base geometry - dark background
           {
             elementType: 'geometry',
             stylers: [{ color: '#1a1a1a' }],
           },
-          {
-            elementType: 'labels.text.stroke',
-            stylers: [{ color: '#1a1a1a' }],
-          },
-          {
-            elementType: 'labels.text.fill',
-            stylers: [{ color: '#ffffff' }],
-          },
+          // Water - very dark
           {
             featureType: 'water',
             elementType: 'geometry',
             stylers: [{ color: '#0c0c0c' }],
           },
+          // Hide all labels by default
+          {
+            elementType: 'labels',
+            stylers: [{ visibility: 'off' }],
+          },
+          // Hide all roads
           {
             featureType: 'road',
-            elementType: 'geometry',
-            stylers: [{ color: '#2d2d2d' }],
+            stylers: [{ visibility: 'off' }],
+          },
+          // Hide highway numbers and labels
+          {
+            featureType: 'road.highway',
+            stylers: [{ visibility: 'off' }],
           },
           {
-            featureType: 'road',
-            elementType: 'labels.text.fill',
-            stylers: [{ color: '#9ca5af' }],
+            featureType: 'road.highway.controlled_access',
+            stylers: [{ visibility: 'off' }],
           },
+          // Hide administrative boundaries and labels
           {
             featureType: 'administrative',
-            elementType: 'labels.text.fill',
-            stylers: [{ color: '#ffffff' }],
+            stylers: [{ visibility: 'off' }],
+          },
+          {
+            featureType: 'administrative.locality',
+            stylers: [{ visibility: 'off' }],
+          },
+          {
+            featureType: 'administrative.neighborhood',
+            stylers: [{ visibility: 'off' }],
+          },
+          // Hide points of interest
+          {
+            featureType: 'poi',
+            stylers: [{ visibility: 'off' }],
+          },
+          // Hide transit
+          {
+            featureType: 'transit',
+            stylers: [{ visibility: 'off' }],
           },
         ],
         disableDefaultUI: false,
