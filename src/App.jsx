@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import MapComponent from './components/MapComponent'
 import Header from './components/Header'
 import EpisodeModal from './components/EpisodeModal'
@@ -7,10 +7,10 @@ function App() {
   const [selectedEpisode, setSelectedEpisode] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
 
-  const handleCityClick = (episode) => {
+  const handleCityClick = useCallback((episode) => {
     setSelectedEpisode(episode)
     setIsModalOpen(true)
-  }
+  }, [])
 
   const closeModal = () => {
     setIsModalOpen(false)

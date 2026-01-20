@@ -64,8 +64,14 @@ function MapComponent({ onCityClick }) {
   const mapRef = useRef(null)
   const mapInstanceRef = useRef(null)
   const markersRef = useRef([])
+  const onCityClickRef = useRef(onCityClick)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
+
+  // Keep the callback ref up to date
+  useEffect(() => {
+    onCityClickRef.current = onCityClick
+  }, [onCityClick])
 
   useEffect(() => {
     const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
@@ -234,7 +240,7 @@ function MapComponent({ onCityClick }) {
         // Add click listener to marker
         marker.addListener('click', () => {
           infoWindow.open(mapInstanceRef.current, marker)
-          onCityClick(city)
+          onCityClickRef.current(city)
         })
 
         markersRef.current.push({ marker, infoWindow })
@@ -244,7 +250,7 @@ function MapComponent({ onCityClick }) {
         window.handleCityClick = (cityId) => {
           const city = quebecCities.find((c) => c.id.toString() === cityId.toString())
           if (city) {
-            onCityClick(city)
+            onCityClickRef.current(city)
           }
         }
         
@@ -257,7 +263,7 @@ function MapComponent({ onCityClick }) {
       }
     }
 
-    // Cleanup
+    // Cleanup - only when component unmounts
     return () => {
       markersRef.current.forEach(({ marker, infoWindow }) => {
         marker.setMap(null)
@@ -268,7 +274,7 @@ function MapComponent({ onCityClick }) {
         delete window.handleCityClick
       }
     }
-  }, [onCityClick])
+  }, []) // Empty dependency array - only run once on mount
 
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
 
