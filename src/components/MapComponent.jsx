@@ -1,100 +1,60 @@
-import { useRef } from 'react'
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
-import L from 'leaflet'
-import 'leaflet/dist/leaflet.css'
-
-// Fix for default marker icons in React-Leaflet
-delete L.Icon.Default.prototype._getIconUrl
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-})
-
-// Custom marker icon with mustard color
-const createCustomIcon = (color = '#f59e0b') => {
-  return L.divIcon({
-    className: 'custom-marker',
-    html: `
-      <div style="
-        background-color: ${color};
-        width: 24px;
-        height: 24px;
-        border-radius: 50% 50% 50% 0;
-        transform: rotate(-45deg);
-        border: 3px solid white;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-      ">
-        <div style="
-          transform: rotate(45deg);
-          width: 100%;
-          height: 100%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        "></div>
-      </div>
-    `,
-    iconSize: [24, 24],
-    iconAnchor: [12, 24],
-  })
-}
+import { useEffect, useRef } from 'react'
 
 // Quebec cities with their coordinates and YouTube episode links
 const quebecCities = [
   {
     id: 1,
     name: 'Montréal',
-    position: [45.5017, -73.5673],
+    position: { lat: 45.5017, lng: -73.5673 },
     youtubeUrl: 'https://www.youtube.com/watch?v=YOUR_VIDEO_ID',
     description: 'Épisode sur Montréal',
   },
   {
     id: 2,
     name: 'Québec',
-    position: [46.8139, -71.2080],
+    position: { lat: 46.8139, lng: -71.2080 },
     youtubeUrl: 'https://www.youtube.com/watch?v=YOUR_VIDEO_ID',
     description: 'Épisode sur Québec',
   },
   {
     id: 3,
     name: 'Laval',
-    position: [45.6067, -73.7123],
+    position: { lat: 45.6067, lng: -73.7123 },
     youtubeUrl: 'https://www.youtube.com/watch?v=YOUR_VIDEO_ID',
     description: 'Épisode sur Laval',
   },
   {
     id: 4,
     name: 'Gatineau',
-    position: [45.4765, -75.7013],
+    position: { lat: 45.4765, lng: -75.7013 },
     youtubeUrl: 'https://www.youtube.com/watch?v=YOUR_VIDEO_ID',
     description: 'Épisode sur Gatineau',
   },
   {
     id: 5,
     name: 'Longueuil',
-    position: [45.5369, -73.5103],
+    position: { lat: 45.5369, lng: -73.5103 },
     youtubeUrl: 'https://www.youtube.com/watch?v=YOUR_VIDEO_ID',
     description: 'Épisode sur Longueuil',
   },
   {
     id: 6,
     name: 'Sherbrooke',
-    position: [45.4000, -71.8990],
+    position: { lat: 45.4000, lng: -71.8990 },
     youtubeUrl: 'https://www.youtube.com/watch?v=YOUR_VIDEO_ID',
     description: 'Épisode sur Sherbrooke',
   },
   {
     id: 7,
     name: 'Saguenay',
-    position: [48.4168, -71.0689],
+    position: { lat: 48.4168, lng: -71.0689 },
     youtubeUrl: 'https://www.youtube.com/watch?v=YOUR_VIDEO_ID',
     description: 'Épisode sur Saguenay',
   },
   {
     id: 8,
     name: 'Trois-Rivières',
-    position: [46.3432, -72.5433],
+    position: { lat: 46.3432, lng: -72.5433 },
     youtubeUrl: 'https://www.youtube.com/watch?v=YOUR_VIDEO_ID',
     description: 'Épisode sur Trois-Rivières',
   },
@@ -102,47 +62,168 @@ const quebecCities = [
 
 function MapComponent({ onCityClick }) {
   const mapRef = useRef(null)
+  const mapInstanceRef = useRef(null)
+  const markersRef = useRef([])
+
+  useEffect(() => {
+    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
+
+    if (!apiKey) {
+      console.error('VITE_GOOGLE_MAPS_API_KEY is not defined')
+      return
+    }
+
+    // Load Google Maps script if not already loaded
+    if (!window.google || !window.google.maps) {
+      const script = document.createElement('script')
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`
+      script.async = true
+      script.defer = true
+      script.onload = initializeMap
+      document.head.appendChild(script)
+    } else {
+      initializeMap()
+    }
+
+    function initializeMap() {
+      if (!mapRef.current || mapInstanceRef.current) return
+
+      // Initialize map with dark theme
+      mapInstanceRef.current = new window.google.maps.Map(mapRef.current, {
+        center: { lat: 46.8139, lng: -71.2080 }, // Center of Quebec
+        zoom: 7,
+        styles: [
+          {
+            elementType: 'geometry',
+            stylers: [{ color: '#1a1a1a' }],
+          },
+          {
+            elementType: 'labels.text.stroke',
+            stylers: [{ color: '#1a1a1a' }],
+          },
+          {
+            elementType: 'labels.text.fill',
+            stylers: [{ color: '#ffffff' }],
+          },
+          {
+            featureType: 'water',
+            elementType: 'geometry',
+            stylers: [{ color: '#0c0c0c' }],
+          },
+          {
+            featureType: 'road',
+            elementType: 'geometry',
+            stylers: [{ color: '#2d2d2d' }],
+          },
+          {
+            featureType: 'road',
+            elementType: 'labels.text.fill',
+            stylers: [{ color: '#9ca5af' }],
+          },
+          {
+            featureType: 'administrative',
+            elementType: 'labels.text.fill',
+            stylers: [{ color: '#ffffff' }],
+          },
+        ],
+        disableDefaultUI: false,
+        zoomControl: true,
+        mapTypeControl: false,
+        scaleControl: true,
+        streetViewControl: false,
+        rotateControl: false,
+        fullscreenControl: true,
+      })
+
+      // Create custom marker icon (mustard color)
+      const customIcon = {
+        path: window.google.maps.SymbolPath.CIRCLE,
+        scale: 12,
+        fillColor: '#f59e0b',
+        fillOpacity: 1,
+        strokeColor: '#ffffff',
+        strokeWeight: 3,
+      }
+
+      // Add markers for each city
+      quebecCities.forEach((city) => {
+        const marker = new window.google.maps.Marker({
+          position: city.position,
+          map: mapInstanceRef.current,
+          title: city.name,
+          icon: customIcon,
+        })
+
+        // Create info window
+        const infoWindow = new window.google.maps.InfoWindow({
+          content: `
+            <div style="color: #1a1a1a; padding: 8px; min-width: 200px;">
+              <h3 style="margin: 0 0 8px 0; font-weight: bold; font-size: 18px;">${city.name}</h3>
+              <p style="margin: 0 0 12px 0; font-size: 14px; color: #666;">${city.description}</p>
+              <button 
+                onclick="window.handleCityClick('${city.id}')" 
+                style="
+                  background-color: #f59e0b; 
+                  color: white; 
+                  border: none; 
+                  padding: 8px 16px; 
+                  border-radius: 4px; 
+                  cursor: pointer;
+                  font-weight: 500;
+                "
+                onmouseover="this.style.backgroundColor='#d97706'"
+                onmouseout="this.style.backgroundColor='#f59e0b'"
+              >
+                Voir l'épisode
+              </button>
+            </div>
+          `,
+        })
+
+        // Add click listener to marker
+        marker.addListener('click', () => {
+          infoWindow.open(mapInstanceRef.current, marker)
+          onCityClick(city)
+        })
+
+        markersRef.current.push({ marker, infoWindow })
+      })
+
+      // Store handler globally for info window buttons
+      window.handleCityClick = (cityId) => {
+        const city = quebecCities.find((c) => c.id.toString() === cityId.toString())
+        if (city) {
+          onCityClick(city)
+        }
+      }
+    }
+
+    // Cleanup
+    return () => {
+      markersRef.current.forEach(({ marker, infoWindow }) => {
+        marker.setMap(null)
+        infoWindow.close()
+      })
+      markersRef.current = []
+      if (window.handleCityClick) {
+        delete window.handleCityClick
+      }
+    }
+  }, [onCityClick])
 
   return (
     <div className="map-container">
-      <MapContainer
-        ref={mapRef}
-        center={[46.8139, -71.2080]}
-        zoom={7}
-        style={{ height: '100vh', width: '100%', zIndex: 1 }}
-        zoomControl={true}
-        scrollWheelZoom={true}
-      >
-        {/* Dark theme tiles for better aesthetics matching the design */}
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-        />
-        
-        {quebecCities.map((city) => (
-          <Marker
-            key={city.id}
-            position={city.position}
-            icon={createCustomIcon('#f59e0b')}
-            eventHandlers={{
-              click: () => onCityClick(city),
-            }}
-          >
-            <Popup>
-              <div className="text-dark-900 p-2">
-                <h3 className="font-bold text-lg mb-1">{city.name}</h3>
-                <p className="text-sm text-dark-600">{city.description}</p>
-                <button
-                  onClick={() => onCityClick(city)}
-                  className="mt-2 px-4 py-2 bg-mustard-500 text-white rounded hover:bg-mustard-600 transition-colors"
-                >
-                  Voir l'épisode
-                </button>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
-      </MapContainer>
+      <div ref={mapRef} style={{ height: '100vh', width: '100%' }} />
+      {!import.meta.env.VITE_GOOGLE_MAPS_API_KEY && (
+        <div className="absolute inset-0 flex items-center justify-center bg-dark-900 text-white z-50">
+          <div className="text-center">
+            <p className="text-xl mb-2">Clé API Google Maps manquante</p>
+            <p className="text-sm text-dark-400">
+              Veuillez configurer VITE_GOOGLE_MAPS_API_KEY dans votre fichier .env
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -30,16 +30,16 @@
   }
 }
 
-/* Leaflet map custom styles */
-.leaflet-container {
-  @apply bg-dark-800;
-  font-family: 'Inter', sans-serif;
+/* Google Maps custom styles */
+.map-container {
+  @apply relative w-full h-screen;
 }
 
-.leaflet-popup-content-wrapper {
+/* Google Maps InfoWindow styling */
+.gm-style .gm-style-iw-c {
   @apply bg-dark-800 text-white rounded-lg;
 }
 
-.leaflet-popup-tip {
-  @apply bg-dark-800;
+.gm-style .gm-style-iw-d {
+  @apply text-white;
 }
