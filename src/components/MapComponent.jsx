@@ -235,6 +235,10 @@ function MapComponent({ onCityClick }) {
         strokeWeight: 3,
       }
 
+      // Shared state for info windows - ensures only one is open at a time
+      let sharedHoverTimeout = null
+      let sharedCurrentInfoWindow = null
+
       // Add markers for each city
       quebecCities.forEach((city) => {
         const marker = new window.google.maps.Marker({
@@ -293,33 +297,33 @@ function MapComponent({ onCityClick }) {
           `,
         })
 
-        // Track currently open info window to close it when hovering another marker
-        let hoverTimeout = null
-        let currentInfoWindow = null
-
         // Add hover listeners to marker
         marker.addListener('mouseover', () => {
           // Clear any pending close timeout
-          if (hoverTimeout) {
-            clearTimeout(hoverTimeout)
-            hoverTimeout = null
+          if (sharedHoverTimeout) {
+            clearTimeout(sharedHoverTimeout)
+            sharedHoverTimeout = null
           }
           
-          // Close any previously open info window
-          if (currentInfoWindow && currentInfoWindow !== infoWindow) {
-            currentInfoWindow.close()
+          // Close any previously open info window (from any marker)
+          if (sharedCurrentInfoWindow && sharedCurrentInfoWindow !== infoWindow) {
+            sharedCurrentInfoWindow.close()
+            sharedCurrentInfoWindow = null
           }
           
-          infoWindow.open(mapInstanceRef.current, marker)
-          currentInfoWindow = infoWindow
+          // Only open if not already open
+          if (sharedCurrentInfoWindow !== infoWindow) {
+            infoWindow.open(mapInstanceRef.current, marker)
+            sharedCurrentInfoWindow = infoWindow
+          }
         })
 
         // Close info window when mouse leaves marker (with delay to allow moving to info window)
         marker.addListener('mouseout', () => {
-          hoverTimeout = setTimeout(() => {
-            if (currentInfoWindow === infoWindow) {
+          sharedHoverTimeout = setTimeout(() => {
+            if (sharedCurrentInfoWindow === infoWindow) {
               infoWindow.close()
-              currentInfoWindow = null
+              sharedCurrentInfoWindow = null
             }
           }, 300)
         })
@@ -328,22 +332,31 @@ function MapComponent({ onCityClick }) {
         infoWindow.addListener('domready', () => {
           // Use a small delay to ensure DOM is ready
           setTimeout(() => {
-            const infoWindowDiv = document.querySelector('.gm-style-iw-c')
+            // Find the specific info window div for this info window
+            const infoWindowDivs = document.querySelectorAll('.gm-style-iw-c')
+            const infoWindowDiv = Array.from(infoWindowDivs).find(div => {
+              return div.textContent.includes(city.name)
+            })
+            
             if (infoWindowDiv) {
-              infoWindowDiv.addEventListener('mouseenter', () => {
+              // Remove any existing listeners to prevent duplicates
+              const newDiv = infoWindowDiv.cloneNode(true)
+              infoWindowDiv.parentNode.replaceChild(newDiv, infoWindowDiv)
+              
+              newDiv.addEventListener('mouseenter', () => {
                 // Clear timeout when hovering over info window
-                if (hoverTimeout) {
-                  clearTimeout(hoverTimeout)
-                  hoverTimeout = null
+                if (sharedHoverTimeout) {
+                  clearTimeout(sharedHoverTimeout)
+                  sharedHoverTimeout = null
                 }
               })
               
-              infoWindowDiv.addEventListener('mouseleave', () => {
+              newDiv.addEventListener('mouseleave', () => {
                 // Close after leaving info window
-                hoverTimeout = setTimeout(() => {
-                  if (currentInfoWindow === infoWindow) {
+                sharedHoverTimeout = setTimeout(() => {
+                  if (sharedCurrentInfoWindow === infoWindow) {
                     infoWindow.close()
-                    currentInfoWindow = null
+                    sharedCurrentInfoWindow = null
                   }
                 }, 200)
               })
