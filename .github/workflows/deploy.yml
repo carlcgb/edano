@@ -45,8 +45,11 @@ jobs:
             echo "❌ ERROR: VITE_GOOGLE_MAPS_API_KEY is not available in build environment"
             exit 1
           fi
-          echo "✅ API key is available: ${VITE_GOOGLE_MAPS_API_KEY:0:15}..."
+          echo "✅ API key is available (length: ${#VITE_GOOGLE_MAPS_API_KEY} chars)"
+          echo "🔑 API key preview: ${VITE_GOOGLE_MAPS_API_KEY:0:20}..."
+          echo "📦 Starting build with VITE_GOOGLE_MAPS_API_KEY set..."
           npm run build
+          echo "✅ Build completed"
         env:
           VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
         shell: bash
