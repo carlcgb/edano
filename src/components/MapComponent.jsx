@@ -68,11 +68,14 @@ function MapComponent({ onCityClick }) {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
+    // Get API key - try multiple methods to ensure we get it
+    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || 
+                   (typeof __VITE_GOOGLE_MAPS_API_KEY__ !== 'undefined' ? __VITE_GOOGLE_MAPS_API_KEY__ : null)
 
     console.log('API Key loaded:', apiKey ? 'Yes' : 'No')
     console.log('Environment:', import.meta.env.MODE)
     console.log('API Key value:', apiKey ? `${apiKey.substring(0, 10)}...` : 'NOT SET')
+    console.log('Full import.meta.env:', import.meta.env)
 
     if (!apiKey) {
       console.error('VITE_GOOGLE_MAPS_API_KEY is not defined')

@@ -57,30 +57,49 @@ jobs:
 
       - name: Build
         run: |
-          echo "📦 Starting build with VITE_GOOGLE_MAPS_API_KEY..."
-          echo "🔑 API key length: ${#VITE_GOOGLE_MAPS_API_KEY} chars"
-          echo "🔑 API key preview: ${VITE_GOOGLE_MAPS_API_KEY:0:20}..."
+          echo "=========================================="
+          echo "🔍 PRE-BUILD VERIFICATION"
+          echo "=========================================="
           if [ -z "$VITE_GOOGLE_MAPS_API_KEY" ]; then
-            echo "❌ CRITICAL ERROR: VITE_GOOGLE_MAPS_API_KEY is empty!"
-            echo "❌ Build will fail - secret must be set in GitHub Secrets"
+            echo "❌ CRITICAL ERROR: VITE_GOOGLE_MAPS_API_KEY is EMPTY!"
+            echo "❌ The secret does not exist or is empty in GitHub Secrets"
+            echo "❌ Go to: https://github.com/carlcgb/edano/settings/secrets/actions"
+            echo "❌ Create secret: VITE_GOOGLE_MAPS_API_KEY = AIzaSyAe4Gb3UubLAgUr6rqgh3B4MLPsuXxSep4"
             exit 1
           fi
+          echo "✅ API key is set"
+          echo "🔑 API key length: ${#VITE_GOOGLE_MAPS_API_KEY} chars"
+          echo "🔑 API key starts with: ${VITE_GOOGLE_MAPS_API_KEY:0:20}..."
+          echo "🔑 API key ends with: ...${VITE_GOOGLE_MAPS_API_KEY: -10}"
+          echo ""
+          echo "=========================================="
+          echo "📦 STARTING BUILD"
+          echo "=========================================="
           npm run build
-          echo "✅ Build completed"
-          echo "🔍 Verifying API key was injected in built files..."
-          if find dist/assets -name "*.js" -type f -exec grep -q "AIzaSy" {} \; 2>/dev/null; then
-            echo "✅ SUCCESS: API key found in built JavaScript files"
+          echo ""
+          echo "=========================================="
+          echo "🔍 POST-BUILD VERIFICATION"
+          echo "=========================================="
+          echo "Searching for API key in built files..."
+          JS_FILES=$(find dist/assets -name "*.js" -type f 2>/dev/null | head -3)
+          if [ -z "$JS_FILES" ]; then
+            echo "⚠️ No JS files found in dist/assets"
           else
-            echo "❌ CRITICAL ERROR: API key NOT found in built files!"
-            echo "Checking for undefined values..."
-            if find dist/assets -name "*.js" -type f -exec grep -q '"undefined"' {} \; 2>/dev/null || find dist/assets -name "*.js" -type f -exec grep -q "undefined" {} \; 2>/dev/null; then
-              echo "❌ Found 'undefined' - API key was not injected during build"
-              echo "This is a critical error - build will fail"
-              exit 1
-            else
-              echo "⚠️ WARNING: Could not verify API key injection - but continuing"
-            fi
+            for file in $JS_FILES; do
+              echo "Checking: $file"
+              if grep -q "AIzaSy" "$file" 2>/dev/null; then
+                echo "✅ FOUND API KEY in $file"
+                grep -o "AIzaSy[^\"]*" "$file" | head -1 | sed 's/\(.\{20\}\).*/\1.../'
+              elif grep -q '"undefined"' "$file" 2>/dev/null || grep -q "undefined" "$file" 2>/dev/null; then
+                echo "❌ FOUND 'undefined' in $file - API key was NOT injected!"
+                echo "This means the build failed to inject the API key"
+                exit 1
+              else
+                echo "⚠️ API key pattern not found in $file"
+              fi
+            done
           fi
+          echo "=========================================="
         env:
           VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
 
