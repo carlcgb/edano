@@ -73,25 +73,18 @@
   background-color: rgba(245, 158, 11, 0.4) !important;
 }
 
-/* Hide default Google Maps tooltips (title attribute tooltips) */
-/* Only target tooltips, not info windows */
-.gm-style [title]:not(.gm-style-iw-c *):not(.gm-style-iw-d *) {
-  cursor: default !important;
-}
-
-/* Hide any default tooltip divs that Google Maps might create */
-/* Be very specific to avoid affecting info windows */
-div[role="tooltip"]:not(.gm-style-iw):not(.gm-style-iw-c):not(.gm-style-iw-d),
-.gm-style div[title]:not(.gm-style-iw-c):not(.gm-style-iw-d):not(.gm-style-iw-t):not(.gm-style-iw-b) {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-}
-
-/* Ensure info windows and their content are clickable */
+/* Ensure info windows and their content are visible and clickable */
+.gm-style-iw,
 .gm-style-iw-c,
 .gm-style-iw-d,
+.gm-style-iw-t,
+.gm-style-iw-b {
+  pointer-events: auto !important;
+  visibility: visible !important;
+  display: block !important;
+  opacity: 1 !important;
+}
+
 .gm-style-iw-c *,
 .gm-style-iw-d * {
   pointer-events: auto !important;

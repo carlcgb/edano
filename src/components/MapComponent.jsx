@@ -241,21 +241,11 @@ function MapComponent({ onCityClick }) {
       const allInfoWindows = [] // Track all info windows
 
       // Function to close ALL info windows (both tracked and in DOM)
-      const closeAllInfoWindows = () => {
-        // Close all tracked info windows
+      const closeAllInfoWindows = (except = null) => {
+        // Close all tracked info windows except the one we're about to open
         allInfoWindows.forEach(iw => {
-          if (iw && iw.getMap()) {
+          if (iw && iw !== except && iw.getMap()) {
             iw.close()
-          }
-        })
-        
-        // Also force close any info windows that might be in the DOM
-        const openWindows = document.querySelectorAll('.gm-style-iw-c')
-        openWindows.forEach(div => {
-          const parent = div.closest('.gm-style-iw')
-          if (parent) {
-            parent.style.display = 'none'
-            parent.remove()
           }
         })
         
@@ -333,17 +323,14 @@ function MapComponent({ onCityClick }) {
             sharedHoverTimeout = null
           }
           
-          // ALWAYS close all info windows first to prevent duplicates
-          closeAllInfoWindows()
+          // Close any previously open info window (but not this one)
+          if (sharedCurrentInfoWindow && sharedCurrentInfoWindow !== infoWindow) {
+            sharedCurrentInfoWindow.close()
+          }
           
-          // Small delay to ensure previous windows are closed before opening new one
-          setTimeout(() => {
-            // Now open the new one (only one should be open)
-            if (sharedCurrentInfoWindow !== infoWindow) {
-              infoWindow.open(mapInstanceRef.current, marker)
-              sharedCurrentInfoWindow = infoWindow
-            }
-          }, 10)
+          // Open this info window immediately
+          infoWindow.open(mapInstanceRef.current, marker)
+          sharedCurrentInfoWindow = infoWindow
         })
 
         // Close info window when mouse leaves marker (with delay to allow moving to info window)
