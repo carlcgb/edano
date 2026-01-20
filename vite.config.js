@@ -8,4 +8,8 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: false,
   },
+  define: {
+    // Ensure environment variables are available at build time
+    'import.meta.env.VITE_GOOGLE_MAPS_API_KEY': JSON.stringify(process.env.VITE_GOOGLE_MAPS_API_KEY || ''),
+  },
 })

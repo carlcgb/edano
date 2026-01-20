@@ -39,7 +39,14 @@ jobs:
           echo "🔑 API Key preview: ${API_KEY_PREVIEW:0:15}..." 
 
       - name: Build
-        run: npm run build
+        run: |
+          echo "🔍 Verifying API key is available for build..."
+          if [ -z "$VITE_GOOGLE_MAPS_API_KEY" ]; then
+            echo "❌ ERROR: VITE_GOOGLE_MAPS_API_KEY is not available in build environment"
+            exit 1
+          fi
+          echo "✅ API key is available: ${VITE_GOOGLE_MAPS_API_KEY:0:15}..."
+          npm run build
         env:
           VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
         shell: bash
